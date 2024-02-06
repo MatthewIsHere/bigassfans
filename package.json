@@ -1,0 +1,16 @@
+{
+  "name": "haikujs",
+  "version": "0.0.0",
+  "description": "A library for discovering and controlling BigAssFans",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "BigAssFans",
+    "Haiku",
+    "Fan"
+  ],
+  "author": "Matthew Lyon",
+  "license": "MIT"
+}
