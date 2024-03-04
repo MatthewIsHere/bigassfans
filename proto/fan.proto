@@ -1,0 +1,347 @@
+syntax = "proto3";
+package BigAssFans;
+// Credit to StinkierMcGee for this masterpiece
+
+message ApiMessage {
+  Payload inner = 2;
+}
+
+message Payload {
+  oneof payload {
+    Job job = 2;
+    Query query = 3;
+    Update update = 4;
+  }
+}
+
+message Job {
+  SystemAction systemAction = 2;
+  repeated Property commands = 3;
+  repeated ScheduleJob scheduleJob = 4;
+}
+
+message Update {
+  repeated Property properties = 2;
+  ScheduleJob scheduleJob = 3;
+}
+
+message Query {
+  enum Type {
+    All = 0;
+    Fan = 1;
+    Light = 2;
+    Device = 3;
+    Network = 4;
+    Schedules = 5;
+    Sensor = 6;
+  }
+
+  Type type = 1;
+}
+
+message SystemAction {
+  enum Command {
+    NoAction = 0;
+    Reboot = 2;
+    StartAudibleSignal = 4;
+    StartVisibleSignal = 5;
+    ForgetRemote = 8;
+    ResumeFanMode = 11;
+    ResumeLightMode = 12;
+  }
+
+  Command command = 1;
+  reserved 2;
+
+  oneof field { RemoteCommandData remoteData = 3; }
+}
+message RemoteCommandData { string address = 2; }
+
+message Property {
+  oneof field {
+    string name = 1;
+    string model = 2;
+    string localTime = 4;
+    string utcTime = 5;
+    string timeZone = 6;
+    string fwVersion = 7;
+    string macAddress = 8;
+    string cloudId = 9;
+    string deviceId = 10;
+    string cloudServerUrl = 11;
+    string apiVersion = 13;
+    uint32 deviceTypeId = 15;
+    DetailedVersion detailedVersion = 16;
+
+    DeviceCapabilities deviceCapabilities = 17;
+
+    string pcbaPartNumber = 37;
+    string pcbaRevision = 38;
+
+    OperatingMode fanMode = 43;
+    Direction fanDirection = 44;
+    uint32 fanPercent = 45;
+    uint32 fanSpeed = 46;
+    bool comfortSenseEnabled = 47;
+    uint32 comfortSenseIdealTemp = 48;
+    uint32 comfortSenseMinSpeed = 50;
+    uint32 comfortSenseMaxSpeed = 51;
+    bool fanOccupancyEnabled = 52;
+    uint32 fanOccupancyTimeout = 53;
+    bool fanReturnToAutoEnabled = 54;
+    uint32 fanReturnToAutoTimeout = 55;
+    bool whooshEnabled = 58;
+    bool comfortSenseHeatAssistEnabled = 60;
+    uint32 comfortSenseHeatAssistSpeed = 61;
+    Direction comfortSenseHeatAssistDirection = 62;
+    uint32 commandedRpm = 63;
+    uint32 actualRpm = 64;
+    bool ecoModeEnabled = 65;
+    bool fanOccupied = 66;
+    bool fanOnMeansAuto = 67;
+
+    OperatingMode lightMode = 68;
+    uint32 lightPercent = 69;
+    uint32 lightLevel = 70;
+    uint32 lightColorTemperature = 71;
+    bool lightOccupancyEnabled = 72;
+    uint32 lightOccupancyTimeout = 73;
+    bool lightReturnToAutoEnabled = 74;
+    uint32 lightReturnToAutoTimeout = 75;
+    bool lightDimToWarmEnabled = 77;
+    uint32 lightColorTemperatureMin = 78;
+    uint32 lightColorTemperatureMax = 79;
+    MultipleLightMode multipleLightMode = 82;
+    StandbyLed standbyLed = 83;
+    bool lightOccupied = 85;
+
+    uint32 temperature = 86;
+    uint32 humidity = 87;
+
+    uint32 fanTimerMinutes = 95;
+    int64 fanTimerUtcExpiration = 96;
+
+    bool lightOnMeansAuto = 109;
+
+    bytes ipAddress = 120;
+    Network network = 124;
+
+    bool indicatorsEnabled = 134;
+    bool audibleIndicatorEnabled = 135;
+    bool legacyIrEnabled = 136;
+    WallControlConfiguration wallControlConfiguration = 139;
+
+    AssistWith assistWith = 140;
+
+    bool remoteDiscoveryEnabled = 150;
+    uint32 externalDeviceCount = 151;
+    ExternalDeviceVersion externalDeviceVersion = 152;
+    bool bleRemoteSupported = 153;
+
+    DebugInfo debugInfo = 156;
+
+    GroupContainer groupContainer = 171;
+
+    bool uvcEnabled = 172;
+    uint32 uvcLife = 173;
+  }
+}
+
+enum Direction {
+  Forward = 0;
+  Reverse = 1;
+}
+
+enum OperatingMode {
+  Off = 0;
+  On = 1;
+  Auto = 2;
+}
+
+enum MultipleLightMode {
+  AllLights = 0;
+  Downlight = 1;
+  Uplight = 2;
+}
+
+enum Day {
+  NoDay = 0;
+  Sunday = 1;
+  Monday = 2;
+  Tuesday = 3;
+  Wednesday = 4;
+  Thursday = 5;
+  Friday = 6;
+  Saturday = 7;
+}
+
+enum RebootReason {
+  Unknown = 0;
+  Other = 1;
+  PowerOn = 2;
+  Software = 3;
+  IndependentWatchdog = 4;
+  TaskWatchdog = 5;
+  BrownOut = 6;
+  LowPower = 7;
+  Lockup = 8;
+  Pin = 9;
+}
+
+message Network { bytes ssid = 1; }
+
+enum AssistWith {
+  Nothing = 0;
+  Heating = 1;
+  Cooling = 2;
+  All = 3;
+}
+
+message WallControlConfiguration {
+  enum Function {
+    NoFunction = 0;
+    LightLevel = 1;
+    LightColor = 2;
+    FanSpeed = 3;
+  }
+
+  Function topButtonFunction = 1;
+  Function bottomButtonFunction = 2;
+}
+
+message DebugInfo {
+  uint32 uptimeMinutes = 1;
+  uint32 rebootCountTotal = 2;
+  uint32 rebootCountSincePor = 3;
+  RebootReason lastRebootReason = 4;
+  uint32 lastRebootDetails = 5;
+  uint32 softwareError = 6;
+  uint32 softwareErrorDetails = 7;
+}
+
+enum FirmwareType {
+  Host = 0;
+  Wifi = 1;
+  Light = 2;
+  Motor = 3;
+}
+
+enum ExternalDeviceType {
+  BleRemote = 0;
+  BleWallControl = 1;
+  UnknownDevice = 2;
+}
+
+message DetailedVersion {
+  FirmwareType type = 1;
+  string appVersion = 2;
+  string bootloaderVersion = 3;
+}
+
+message ExternalDeviceVersion {
+  ExternalDeviceType type = 1;
+  string packageVersion = 2;
+  string bootloaderVersion = 3;
+  string macAddress = 4;
+  RebootReason rebootReason = 7;
+}
+
+message GroupContainer {
+  bytes uuid = 2;
+  string name = 3;
+}
+
+message StandbyLed {
+  enum ColorPreset {
+    Custom = 0;
+    Red = 1;
+    Green = 2;
+    Blue = 3;
+    Teal = 4;
+    Yellow = 5;
+    Violet = 6;
+    White = 7;
+    Orange = 8;
+    Pink = 9;
+  }
+
+  ColorPreset colorPreset = 1;
+  bool enabled = 2;
+  uint32 percent = 3;
+  uint32 red = 4;
+  uint32 green = 5;
+  uint32 blue = 6;
+}
+
+message DeviceCapabilities {
+  bool hasTempSensor = 1;
+  bool hasHumiditySensor = 2;
+  bool hasOccupancySensor = 3;
+  bool hasLight = 4;
+  bool hasLightSensor = 5;
+  bool hasColorTempControl = 6;
+  bool hasFan = 7;
+  bool hasSpeaker = 8;
+  bool hasPiezo = 9;
+  bool hasLedIndicators = 10;
+  bool hasUplight = 11;
+  bool hasUvcLight = 12;
+  bool hasStandbyLed = 13;
+  bool hasEcoMode = 14;
+}
+
+message ScheduleProperty {
+  oneof field {
+    OperatingMode fanMode = 1;
+    Direction fanDirection = 2;
+    uint32 fanSpeed = 4;
+    uint32 fanPercent = 3;
+
+    OperatingMode lightMode = 5;
+    uint32 lightLevel = 7;
+    uint32 lightColorTemperature = 8;
+    uint32 lightPercent = 6;
+    uint32 uplightPercent = 9;
+    MultipleLightMode multipleLightMode = 10;
+
+    bool comfortSenseEnabled = 11;
+    uint32 comfortSenseIdealTemp = 12;
+    uint32 comfortSenseMinSpeed = 13;
+    uint32 comfortSenseMaxSpeed = 14;
+    bool fanOccupancyEnabled = 15;
+    uint32 fanOccupancyTimeout = 16;
+    bool lightOccupancyEnabled = 17;
+    uint32 lightOccupancyTimeout = 18;
+  }
+}
+
+message ScheduleJob {
+  enum Action {
+    NoAction = 0;
+    Update = 1;
+    Remove = 2;
+    Read = 3;
+  }
+
+  message Schedule {
+    message ScheduleEvent {
+      string time = 1;
+      repeated ScheduleProperty properties = 2;
+    }
+
+    uint32 id = 1;
+    string name = 2;
+    repeated bytes devices = 3;
+    repeated Day days = 4;
+    bool isEnabled = 6;
+    ScheduleEvent startEvent = 7;
+    ScheduleEvent endEvent = 8;
+  }
+
+  Action action = 1;
+  Schedule schedule = 2;
+  uint32 schedulesCount = 3;
+  uint32 schedulesMax = 4;
+}
+
+

@@ -1,0 +1,5 @@
+dist/
+node_modules/
+debug.protoscope
+src/proto
+fan.debug
