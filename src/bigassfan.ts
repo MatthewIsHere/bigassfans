@@ -252,7 +252,7 @@ export class BigAssFan<Capabilities extends DeviceCapabilities = DeviceCapabilit
     static discover = discover
     
     // You MUST include the Generic in a type somewhere, otherwise type inference does not work
-    private features: Capabilities | DeviceCapabilities = noCapabilities()
+    public _features: Capabilities | DeviceCapabilities = noCapabilities()
     
     constructor(ip: string, port: number) {
         super(ip, port)
@@ -262,7 +262,7 @@ export class BigAssFan<Capabilities extends DeviceCapabilities = DeviceCapabilit
     // Setup capabilities and property accessors
     private async onOnline() {
         const features = await this.capabilities.get()
-        this.features = features
+        this._features = features
         if (features.hasFan) this.fan = this._fan as typeof this.fan
         if (features.hasLight) this.light = this._light as typeof this.light
         if (this.hasFan() && features.hasOccupancySensor) this._fan.occupancy = this._fanOccupancy as typeof this._fan.occupancy
@@ -309,25 +309,25 @@ export class BigAssFan<Capabilities extends DeviceCapabilities = DeviceCapabilit
     // Type Guards
 
     hasFan(): this is BigAssFan<AddFeature<"hasFan">> {
-        return this.features.hasFan
+        return this._features.hasFan
     }
     hasLight(): this is BigAssFan<AddFeature<"hasLight">> {
-        return this.features.hasLight
+        return this._features.hasLight
     }
     hasColorTemperature(): this is BigAssFan<AddFeature<"hasColorTempControl"> & AddFeature<"hasLight">> {
-        return this.features.hasColorTempControl && this.features.hasLight
+        return this._features.hasColorTempControl && this._features.hasLight
     }
     hasOccupancy(): this is BigAssFan<AddFeature<"hasOccupancySensor">> {
-        return this.features.hasOccupancySensor
+        return this._features.hasOccupancySensor
     }
     hasSensors(): this is BigAssFan<AddFeature<"hasTempSensor"> & AddFeature<"hasHumiditySensor">> {
-        return this.features.hasTempSensor && this.features.hasHumiditySensor
+        return this._features.hasTempSensor && this._features.hasHumiditySensor
     }
     hasEco(): this is BigAssFan<AddFeature<"hasEcoMode">>{
-        return this.features.hasEcoMode
+        return this._features.hasEcoMode
     }
     hasUvc(): this is BigAssFan<AddFeature<"hasUvcLight">> {
-        return this.features.hasUvcLight
+        return this._features.hasUvcLight
     }
     
 
