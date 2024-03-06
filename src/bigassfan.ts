@@ -18,7 +18,7 @@ class PropertyStore
     }
     set<T extends PropertyKey>(key: T, value: Properties[T]): void {
         this.store[key] = value
-        this.emit<PropertyKey>(key, value)
+        this.emit(key, value)
     }
     waitForChange<T extends PropertyKey>(key: T): Promise<Properties[T]> {
         return new Promise(resolve =>
@@ -29,18 +29,16 @@ class PropertyStore
 
 type BigAssEvents = {
     online: () => void
-    ready: (fan: BigAssFan) => void
+    ready: (fan: BigAssFan) => void,
+    error: (error: Error) => void
 }
-class BigAssDevice {
-
-    private emitter = new EventEmitter() as TypedEmitter<BigAssEvents>
-    // Emitter Methods
-    on = this.emitter.on
-    off = this.emitter.off
-    once = this.emitter.once
-    emit = this.emitter.emit
+class BigAssDevice
+    extends (EventEmitter as new () => TypedEmitter<BigAssEvents>) {
 
     // Online status
+    public ip: string
+    public port: number
+    private failCount: number = 0
     protected ready: boolean = false
     protected fatal: boolean = false
     
@@ -54,19 +52,15 @@ class BigAssDevice {
     protected properties = new PropertyStore()
 
     constructor(ip: string, port: number) {
-        this.connection = net.createConnection({
-            host: ip,
-            port: port,
-            family: 4, // As far as I know, BaF is only IPv4 :(
-            keepAlive: true
-        })
+        super()
+        this.connection = this.createConnection(ip, port)
         this.connection.on("connect", this.onConnected.bind(this))
         this.connection.on("error", this.onError.bind(this))
         this.connection.on("data", this.onTCPChunk.bind(this))
         this.connection.on("ready", this.onReady.bind(this))
 
-        //Put in BigAssFan?
-        // this.connection.on("ready", this.onReady.bind(this))
+        this.ip = ip
+        this.port = port
     }
 
     private onReady() {
@@ -77,12 +71,30 @@ class BigAssDevice {
         this.sendQuery(Query_Type.All)
     }
     private onError(err: Error) {
+        this.failCount++
         DEBUG(err)
         if (err.name == "ECONNREFUSED") {
             this.fatalError(err.name)
         } else if (err.name == "EHOSTUNREACH") {
             this.fatalError(err.name)
+        } else {
+            if (this.failCount >= 2) {
+                DEBUG(`BigAssDevice (${this.ip}): Has failed too may times and will now quit`)
+                this.fatalError("Too Many connection erros")
+            } else {
+                DEBUG(`BigAssDevice (${this.ip}): Has failed and will retry`)
+                this.connection = this.createConnection(this.ip, this.port)
+            }
         }
+    }
+
+    private createConnection(ip: string, port: number) {
+        return net.createConnection({
+            host: ip,
+            port: port,
+            family: 4, // As far as I know, BaF is only IPv4 :(
+            keepAlive: true
+        })
     }
     private onTCPChunk(b: Buffer) {
         const data = Uint8Array.from(b)
@@ -126,6 +138,7 @@ class BigAssDevice {
     private fatalError(msg: string) {
         console.log(`WARN: Fatal Error: ${msg}`)
         this.fatal = true
+        this.emit("error", new Error(msg))
         this.destroy()
     }
     destroy() {
@@ -202,13 +215,7 @@ class BigAssDevice {
         this.sendCommands([{ [property]: value }])
         return this.properties.waitForChange(property)
     }
-
-    public get ip() {
-        return this.connection.remoteAddress
-    }
-    public get port() {
-        return this.connection.remotePort
-    }
+    
 }
 
 
@@ -293,6 +300,9 @@ export class BigAssFan<Capabilities extends DeviceCapabilities = DeviceCapabilit
                 } else {
                     throw new Error("Invalid Property Value")
                 }
+            },
+            onChange(func: (value: Target) => void) {
+                parent.properties.on(key, func)
             }
         }
     }
@@ -302,6 +312,9 @@ export class BigAssFan<Capabilities extends DeviceCapabilities = DeviceCapabilit
         return {
             async get(): Promise<Target> {
                 return parent.get(key)
+            },
+            onChange(func: (value: Target) => void) {
+                parent.properties.on(key, func)
             }
         }
     }
