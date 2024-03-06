@@ -32,8 +32,14 @@ type BigAssEvents = {
     ready: (fan: BigAssFan) => void,
     error: (error: Error) => void
 }
-class BigAssDevice
-    extends (EventEmitter as new () => TypedEmitter<BigAssEvents>) {
+class BigAssDevice {
+
+    // Event Emitter
+    private emitter = new EventEmitter() as TypedEmitter<BigAssEvents>
+    on = this.emitter.on
+    once = this.emitter.once
+    emit = this.emitter.emit
+
 
     // Online status
     public ip: string
@@ -52,7 +58,6 @@ class BigAssDevice
     protected properties = new PropertyStore()
 
     constructor(ip: string, port: number) {
-        super()
         this.connection = this.createConnection(ip, port)
         this.connection.on("connect", this.onConnected.bind(this))
         this.connection.on("error", this.onError.bind(this))
@@ -215,7 +220,7 @@ class BigAssDevice
         this.sendCommands([{ [property]: value }])
         return this.properties.waitForChange(property)
     }
-    
+
 }
 
 
